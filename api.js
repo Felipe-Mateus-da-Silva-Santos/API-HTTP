@@ -1,4 +1,5 @@
-import http from 'node:http'
+import http from 'node:http';
+import { URL } from "node:url";
 
 const porta = 3000
 
@@ -9,6 +10,9 @@ const tarefas = [
 
 const server = http.createServer((requisicao, resposta) => {
     resposta.setHeader('content-type', 'application/json');
+
+    const urlObj = new(requisicao.url, `http://${requisicao.headers.host}`);
+
     if (requisicao.method == 'GET' && requisicao.url == '/tarefas') {
         respostas.statusCode = 200;
         resposta.end(JSON.stringify(tarefas));
@@ -40,7 +44,12 @@ const server = http.createServer((requisicao, resposta) => {
                 resposta.end(JSON.stringify({ error: 'Formato JSON inválido!' }))
             }
         });
-    } else {
+    } else if(requisicao.method == "GET" && urlObj.pathname == "/tarefas/busca") {
+        const nome = urlObj.searchParams.get('nome');
+
+        tarefas.filter(n => n.nome)
+    }
+    else {
         resposta.statusCode = 404
         resposta.end(JSON.stringify({ error: 'Rota não encontrada.' }))
     }
