@@ -47,7 +47,7 @@ const server = http.createServer((requisicao, resposta) => {
     } else if(requisicao.method == "GET" && urlObj.pathname == "/tarefas/busca") {
         const nome = urlObj.searchParams.get('nome');
 
-        tarefas.filter(n => n.nome)
+        tarefas.filter(n => n.nome === nome)
     }
     else {
         resposta.statusCode = 404
