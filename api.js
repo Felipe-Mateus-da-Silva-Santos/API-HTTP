@@ -11,7 +11,7 @@ const tarefas = [
 const server = http.createServer((requisicao, resposta) => {
     resposta.setHeader('content-type', 'application/json');
 
-    const urlObj = new(requisicao.url, `http://${requisicao.headers.host}`);
+    const urlObj = new URL(requisicao.url, `http://${requisicao.headers.host}`);
 
     if (requisicao.method == 'GET' && requisicao.url == '/tarefas') {
         respostas.statusCode = 200;
@@ -47,13 +47,28 @@ const server = http.createServer((requisicao, resposta) => {
     } else if(requisicao.method == "GET" && urlObj.pathname == "/tarefas/busca") {
         const nome = urlObj.searchParams.get('nome');
 
-        tarefas.filter(n => n.nome === nome)
+        const tarefasEncontradas = tarefas.filter(tarefa => tarefa.nome === nome);
+        resposta.statusCode = 200;
+        resposta.end(JSON.stringify(tarefasEncontradas));
+    } else if (requisicao.method == 'DELETE' && urlObj.pathname == '/tarefas') {
+        const index = Number(urlObj.searchParams.get('index'));
+
+        if (!Number.isInteger(index) || index < 0) {
+            resposta.statusCode = 400;
+            resposta.end(JSON.stringify({ error: "O parâmetro 'index' deve ser um índice válido." }));
+        } else if (index >= tarefas.length) {
+            resposta.statusCode = 404;
+            resposta.end(JSON.stringify({ error: 'Tarefa não encontrada.' }));
+        } else {
+            const tarefaRemovida = tarefas.splice(index, 1)[0];
+            resposta.statusCode = 200;
+            resposta.end(JSON.stringify(tarefaRemovida));
+        }
+    } else {
+        resposta.statusCode = 404;
+        resposta.end(JSON.stringify({ error: 'Rota não encontrada.' }));
     }
-    else {
-        resposta.statusCode = 404
-        resposta.end(JSON.stringify({ error: 'Rota não encontrada.' }))
-    }
-}); 
+});
 
 server.listen(porta, () => {
     console.log(`Servidor funcionando na porta ${porta}`)
